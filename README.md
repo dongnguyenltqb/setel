@@ -8,16 +8,75 @@
 4. after amount of time  (we can config about as order enviroment variable `deliver_time`), the backgroud job of order service will update status of order to `delivered` if the current status is `confirmed`. the code for this job is located in `setel/order/src/jobs/deliverOrder.ts`
 5. payment service can confirm,decline an order randomly, the current way is inject a function return boolean to PaymentService class, check code as `setel/payment/src/service/payment.ts` line 6, and implement function at `setel/payment/src/server.ts` line 29.
 
-#### Deployment
+#### Deployment method
 
 1. Deploy two service behind a reverse proxy server like nginx, aws load balancer
 2. Forward traffic to each service depend on request localtion path
    - `/api/orders` proxy to Order service.
    - `/api/payments` proxy to Payment Service 
+3. Configure environtment for each service, see `Environment` below.
+
+#### Build and Test
+
+1. Order service
+
+   - go to order service
+
+     ```
+     cd order
+     ```
+
+   - build docker image
+
+     ```
+     docker build -t setel-order .
+     ```
+
+   - to test order service (make sure env was passed to the process via .env file or another way)
+
+     ```
+     yarn install
+     yarn test
+     ```
+
+   - to run service without using docker
+
+     ```
+     yarn install
+     yarn build
+     yarn start
+     ```
+
+     
+
+2. Payment service
+
+   - go to payment service folder
+
+     ```
+     cd payment
+     ```
+
+   - build docker image
+
+     ```
+     docker build -t setel-payment .
+     ```
+
+   - to run service without using docker
+
+     ```
+     yarn install
+     yarn build
+     yarn start
+     ```
+
+     
 
 #### Environment
 
 1. Order service
+
    ```
    server_port=1368
    postgres_url=postgres://setel:setel@localhost:5432/setel
@@ -26,32 +85,17 @@
    deliver_time=10
    ```
 
+   `order_host` and `payment_host` is the host name of reverse proxy server, it can be the same if two service share same proxy server.
+
+   `deliver_time` is amout time that the `confirmed` order will be move to `delivered` state. The unit is seconds. 
+
 2. Payment service
+
    ```
    server_port=1369
    ```
 
    
-
-#### Build and Run 
-
-1. Order service
-
-   ```
-   yarn install
-   // to test the code
-   yarn test
-   yarn build
-   yarn start
-   ```
-
-2. Payment service
-
-   ```
-   yarn install
-   yarn build
-   yarn start
-   ```
 
 #### API Document
 
